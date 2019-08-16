@@ -32,6 +32,7 @@
                   <span class="icon-bar"></span>
                   <span class="icon-bar"></span>
                   <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
               </button>
           </div>
           <div class="navbar-collapse collapse" id="main-navbar">
@@ -62,6 +63,11 @@
                   <li th:replace="::menuItem ('/oups','error','trigger a RuntimeException to see how it is handled','warning-sign','Error')">
                       <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span>
                       <span>Error</span>
+                  </li>
+
+                  <li th:replace="::menuItem ('/admin/login.html','admin','Admin Login','log-in','Admin')">
+                    <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
+                    <span>Admin</span>
                   </li>
   
               </ul>

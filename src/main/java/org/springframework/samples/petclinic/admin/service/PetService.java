@@ -6,6 +6,7 @@ import org.springframework.samples.petclinic.admin.domain.PetType;
 import org.springframework.samples.petclinic.admin.domain.Pets;
 import org.springframework.samples.petclinic.admin.domain.Visit;
 import org.springframework.samples.petclinic.admin.model.PetsModel;
+import org.springframework.samples.petclinic.visit.VetAppointmentId;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -68,9 +69,9 @@ public class PetService {
 
     private Visit transform(org.springframework.samples.petclinic.visit.Visit visit) {
         Visit domain = new Visit();
-        domain.setId(visit.getId());
+        VetAppointmentId id = visit.getId();
         domain.setPetId(visit.getPetId());
-        domain.setVisitDate(visit.getDate());
+        domain.setVisitDate(id.getDate());
         domain.setDescription(visit.getDescription());
 
         return domain;

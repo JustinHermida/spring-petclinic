@@ -4,20 +4,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class VisitRequest {
-    private Integer visitId;
     private Integer petId;
     private Integer vetId;
     private String visitDate;
     private String time;
     private String description;
-
-    public Integer getVisitId() {
-        return visitId;
-    }
-
-    public void setVisitId(Integer visitId) {
-        this.visitId = visitId;
-    }
 
     public Integer getPetId() {
         return petId;

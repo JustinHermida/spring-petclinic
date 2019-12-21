@@ -3,20 +3,11 @@ package org.springframework.samples.petclinic.admin.domain;
 import java.time.LocalDate;
 
 public class Visit {
-    private Integer id;
     private Integer petId;
     private Integer vetId;
     private LocalDate visitDate;
     private String time;
     private String description;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     public Integer getPetId() {
         return petId;

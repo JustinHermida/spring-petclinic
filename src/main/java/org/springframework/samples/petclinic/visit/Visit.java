@@ -15,15 +15,16 @@
  */
 package org.springframework.samples.petclinic.visit;
 
-import java.time.LocalDate;
+import org.springframework.samples.petclinic.model.BaseEntity;
 
 import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Table;
 import javax.validation.constraints.NotEmpty;
-
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.samples.petclinic.model.BaseEntity;
 
 /**
  * Simple JavaBean domain object representing a visit.
@@ -33,11 +34,11 @@ import org.springframework.samples.petclinic.model.BaseEntity;
  */
 @Entity
 @Table(name = "visits")
-public class Visit extends BaseEntity {
+public class Visit {
 
-    @Column(name = "visit_date")
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private LocalDate date;
+    @EmbeddedId
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private VetAppointmentId id;
 
     @NotEmpty
     @Column(name = "description")
@@ -46,22 +47,18 @@ public class Visit extends BaseEntity {
     @Column(name = "pet_id")
     private Integer petId;
 
-    @Column(name = "vet_id")
-    private Integer vetId;
-
     /**
      * Creates a new instance of Visit for the current date
      */
     public Visit() {
-        this.date = LocalDate.now();
     }
 
-    public LocalDate getDate() {
-        return this.date;
+    public VetAppointmentId getId() {
+        return id;
     }
 
-    public void setDate(LocalDate date) {
-        this.date = date;
+    public void setId(VetAppointmentId id) {
+        this.id = id;
     }
 
     public String getDescription() {
@@ -80,11 +77,4 @@ public class Visit extends BaseEntity {
         this.petId = petId;
     }
 
-    public Integer getVetId() {
-        return vetId;
-    }
-
-    public void setVetId(Integer vetId) {
-        this.vetId = vetId;
-    }
 }

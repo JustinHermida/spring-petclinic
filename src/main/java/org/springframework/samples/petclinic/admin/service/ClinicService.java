@@ -7,9 +7,14 @@ import org.springframework.samples.petclinic.admin.domain.Vet;
 import org.springframework.samples.petclinic.admin.domain.VetSpecialty;
 import org.springframework.samples.petclinic.admin.domain.Visit;
 import org.springframework.samples.petclinic.admin.enums.SpecialtyType;
+import org.springframework.samples.petclinic.exception.SchedulingConflictException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 @Service
 public class ClinicService {
@@ -67,10 +72,16 @@ public class ClinicService {
     }
 
     public Visit addVisit(Visit visit) {
+        Visit conflict = visitService.findConflict(visit);
+
+        if(conflict != null) {
+            throw new SchedulingConflictException();
+        }
+
         return visitService.addVisit(visit);
     }
 
-    public void cancelVisit(Integer visitId) {
-        visitService.cancelVisit(visitId);
+    public Visit cancelVisit(Visit visit) {
+        return visitService.cancelVisit(visit);
     }
 }

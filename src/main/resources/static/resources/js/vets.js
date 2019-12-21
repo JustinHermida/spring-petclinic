@@ -59,7 +59,7 @@
         var $vetApptsTableBody = $("#vetApptsTableBody");
         var $tr = $("<tr></tr>");
 
-        var $dateInput = $("<input class=\"form-control\" id=\"datePicker\" name=\"date\" placeholder=\"MM-DD-YYY\" type=\"text\"/>");
+        var $dateInput = $("<input class=\"form-control\" id=\"datePicker\" name=\"date\" placeholder=\"YYYY-MM-DD\" type=\"text\"/>");
         var $startTimeInput = $("<input type=\"text\" id=\"timePicker\" class=\"form-control timePicker\" autocomplete=\"off\"/>");
         var $scheduleButton = $("<button type=\"button\" class=\"btn btn-success js-schedule-appt\">Schedule</button>");
         $scheduleButton.attr({"data-vet-id": vetId});
@@ -107,29 +107,46 @@
 
     function _cancelVisit(event) {
         var $target = $(event.target);
-        var visitId = $target.attr("data-visit-id");
+        var $parentTr = $target.closest('tr');
+        // {"data-pet-id": petId, "data-vet-id": vetId, "data-time": time, "data-date": apptDate}
+        var vetId = $parentTr.attr("data-vet-id");
+        var apptDate = $parentTr.attr("data-date");
+        var time = $parentTr.attr("data-time");
 
-        $.when(_cancelAppointment(visitId).done(_removeVisitFromModal));
+        var params = {
+            visitDate: apptDate,
+            vetId: vetId,
+            time: time
+        };
+
+        $.when(_cancelAppointment(params).done(_removeVisitFromModal));
     }
 
-    function _cancelAppointment(visitId) {
+    function _cancelAppointment(request) {
+        var payload = JSON.stringify(request);
 
         var options = {
             type: "DELETE",
             headers: {
                 "Accept": "application/json",
-                "Content-Type": "application/json",
+                "Content-Type": "application/json"
             },
-            url: "visits/" + visitId
+            data: payload,
+            url: "visits"
         };
 
         return $.ajax(options);
     }
 
     function _removeVisitFromModal(response) {
-        var visitIdDeleted = response.id;
+        var vetId = response.vetId;
+        var visitDate = response.visitDate;
+        var time = response.time;
+
         var $vetDetailsModal = $("#vetDetailsModal");
-        var $visit = $vetDetailsModal.find("tr[data-visit-id=" + visitIdDeleted + "]");
+        var $visit = $vetDetailsModal.find("tr[data-vet-id=" + vetId + "]" +
+            "[data-date='" + visitDate + "']" +
+            "[data-time='" + time + "']");
         $visit.remove();
     }
 
@@ -172,16 +189,26 @@
     function _visitComplete(response) {
         console.log(response);
 
+        // update the cache.
+        if(visitsCache[response.vetId] === undefined) {
+            visitsCache[response.vetId] = [response];
+        } else {
+            visitsCache[response.vetId].push(response);
+        }
+
         var visitDate = response.visitDate;
+        var time = response.time;
+        var vetId = response.vetId;
+        var petId = response.petId;
         var today = moment();
         var momentVisitDate = moment(visitDate);
 
         var $tr = $("#vetApptsTableBody").find("tr:first");
-        $tr.attr({"data-visit-id": response.id, "data-pet-id": response.petId});
+        $tr.attr({"data-pet-id": petId, "data-vet-id": vetId, "data-time": time, "data-date": visitDate});
         $tr.empty();
 
         $tr.append($("<td></td>").text(visitDate));
-        $tr.append($("<td></td>").text("10:00am"));
+        $tr.append($("<td></td>").text(time));
         $tr.append($("<td></td>").text(petsCache[response.petId].name));
         $tr.append($("<td></td>").text(response.description));
 
@@ -205,7 +232,10 @@
                 "Content-Type": "application/json",
             },
             url: "visits",
-            data: payload
+            data: payload,
+            error: function () {
+                alert("Scheduling conflict detected! Please select a different time.");
+            }
         };
 
         return $.ajax(options);
@@ -218,6 +248,8 @@
         $('#datePicker').datepicker({
             format: 'yyyy-mm-dd',
             setDate: new Date(),
+            daysOfWeekDisabled: [0,6],
+            startDate: new Date(),
             autoclose : true
         });
     }
@@ -228,7 +260,7 @@
             timeFormat: 'h:mm p',
             interval: 60,
             minTime: '8:00am',
-            maxTime: '5:00pm',
+            maxTime: '4:00pm',
             dynamic: false,
             dropdown: true,
             scrollbar: true
@@ -285,9 +317,14 @@
         var requestBody = {};
         requestBody['firstName'] = firstName;
         requestBody['lastName'] = lastName;
-        // TODO: get the specialties from the dropdown.
-        requestBody['specialties'] = ["radiology"];
 
+        // Get the specialties from the dropdown.
+        var $specialties = $("#addVetModal").find("input:checked");
+        var specialtiesArr = [];
+        $.each($specialties, function() {
+            specialtiesArr.push($(this).parent().data('value'));
+        });
+        requestBody['specialties'] = specialtiesArr;
 
         $.when(_createVet(requestBody)).done(_onCompleteNewVet);
     }
@@ -313,6 +350,19 @@
 
     function _onCompleteNewVet(response) {
         window.console.log(response);
+
+        $(SELECTORS.vets).empty();
+
+        // clear the modal when adding a vet is complete.
+        $("#vetFirstName").val("");
+        $("#vetLastName").val("");
+        $("#addVetModal").find("input:checkbox").removeAttr("checked");
+
+        _buildInitialPage();
+
+        var $addVetModal = $("#addVetModal");
+        $addVetModal.modal('hide');
+
     }
 
     function _individualVetClicked(event) {
@@ -336,18 +386,18 @@
 
         if(appointments !== undefined && appointments !== null) {
             for(var i = 0; i < appointments.length; i++) {
-                var visitId = appointments[i].id;
                 var petId = appointments[i].petId;
                 var vetId = appointments[i].vetId;
                 var petName = petsCache[appointments[i].petId].name;
                 var apptDate = appointments[i].visitDate;
                 var description = appointments[i].description;
                 var momentApptDate = moment(apptDate);
+                var time =  appointments[i].time;
 
                 var $tr = $("<tr></tr>");
-                $tr.attr({"data-visit-id": visitId, "data-pet-id": petId});
+                $tr.attr({"data-pet-id": petId, "data-vet-id": vetId, "data-time": time, "data-date": apptDate});
                 $tr.append($("<td></td>").text(apptDate));
-                $tr.append($("<td></td>").text("10:00am"));
+                $tr.append($("<td></td>").text(time));
                 $tr.append($("<td></td>").text(petName));
                 $tr.append($("<td></td>").text(description));
 
@@ -355,7 +405,7 @@
                     $tr.append($("<td></td>"));
                 } else {
                     var $cancelButton = $("<button type=\"button\" class=\"btn btn-danger js-cancel-appt\">Cancel</button>");
-                    $cancelButton.attr({"data-visit-id": visitId});
+                    $cancelButton.attr({"data-pet-id": petId, "data-vet-id": vetId, "data-time": time, "data-date": apptDate});
 
                     $tr.append($("<td></td>").append($cancelButton));
                 }

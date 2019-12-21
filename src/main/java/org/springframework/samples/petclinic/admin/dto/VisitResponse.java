@@ -6,21 +6,11 @@ import java.time.LocalDateTime;
 
 @XmlRootElement
 public class VisitResponse {
-    private Integer id;
     private Integer petId;
     private Integer vetId;
     private LocalDate visitDate;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private String time;
     private String description;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     public Integer getPetId() {
         return petId;
@@ -46,20 +36,12 @@ public class VisitResponse {
         this.visitDate = visitDate;
     }
 
-    public LocalDateTime getStartTime() {
-        return startTime;
+    public String getTime() {
+        return time;
     }
 
-    public void setStartTime(LocalDateTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public LocalDateTime getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(LocalDateTime endTime) {
-        this.endTime = endTime;
+    public void setTime(String time) {
+        this.time = time;
     }
 
     public String getDescription() {

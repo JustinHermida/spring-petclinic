@@ -17,6 +17,7 @@ import org.springframework.samples.petclinic.admin.dto.VisitRequest;
 import org.springframework.samples.petclinic.admin.dto.VisitResponse;
 import org.springframework.samples.petclinic.admin.dto.VisitsResponse;
 import org.springframework.samples.petclinic.admin.service.ClinicService;
+import org.springframework.samples.petclinic.visit.VetAppointmentId;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -140,14 +141,12 @@ public class AdminController {
         return response;
     }
 
-    @DeleteMapping("/admin/visits/{visitId}")
-    public @ResponseBody VisitResponse cancelVisit(@PathVariable("visitId") int visitId) {
-        clinicService.cancelVisit(visitId);
+    @DeleteMapping("/admin/visits")
+    public @ResponseBody VisitResponse cancelVisit(@RequestBody VisitRequest visitRequest) {
 
-        VisitResponse response = new VisitResponse();
-        response.setId(visitId);
+        Visit visit = clinicService.cancelVisit(transform(visitRequest));
 
-        return response;
+        return transform(visit);
     }
 
     @PostMapping("/admin/visits")
@@ -159,7 +158,7 @@ public class AdminController {
 
     private Visit transform(VisitRequest request) {
         Visit domain = new Visit();
-        domain.setId(request.getVisitId());
+
         domain.setPetId(request.getPetId());
         domain.setVetId(request.getVetId());
         domain.setTime(request.getTime());
@@ -208,10 +207,11 @@ public class AdminController {
 
     private VisitResponse transform(Visit visit) {
         VisitResponse response = new VisitResponse();
-        response.setId(visit.getId());
+
         response.setPetId(visit.getPetId());
         response.setVetId(visit.getVetId());
         response.setVisitDate(visit.getVisitDate());
+        response.setTime(visit.getTime());
         response.setDescription(visit.getDescription());
 
         return response;
